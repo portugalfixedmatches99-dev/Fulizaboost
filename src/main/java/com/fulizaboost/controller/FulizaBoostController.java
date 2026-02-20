@@ -68,10 +68,25 @@ public class FulizaBoostController {
     @PostMapping("/pay")
     public ResponseEntity<Map<String, Object>> payBoostFee(@RequestBody Map<String, Object> payload) {
         try {
-            // Clean and format phone number
-            String phone = ((String) payload.get("phone")).replace("+", "");
-            if (phone.startsWith("0")) {
-                phone = "254" + phone.substring(1);
+//            // Clean and format phone number
+//            String phone = ((String) payload.get("phone")).replace("+", "");
+//            if (phone.startsWith("0")) {
+//                phone = "254" + phone.substring(1);
+//            }
+            String rawPhone = ((String) payload.get("phone")).replaceAll("\\D", "");
+            String phone;
+
+            if (rawPhone.startsWith("254")) {
+                phone = rawPhone;
+            } else if (rawPhone.startsWith("0")) {
+                phone = "254" + rawPhone.substring(1);
+            } else if (rawPhone.length() == 9) {
+                phone = "254" + rawPhone;
+            } else {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "error", "Invalid phone number"
+                ));
             }
 
             // Validate phone format
