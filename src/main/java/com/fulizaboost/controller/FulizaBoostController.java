@@ -76,11 +76,22 @@ public class FulizaBoostController {
             String rawPhone = ((String) payload.get("phone")).replaceAll("\\D", "");
             String phone;
 
-            if (rawPhone.startsWith("254")) {
+// Fix numbers wrongly sent as 25407XXXXXXXX
+            if (rawPhone.startsWith("2540") && rawPhone.length() == 13) {
+                rawPhone = "254" + rawPhone.substring(4);
+            }
+
+            if (rawPhone.startsWith("254") && rawPhone.length() == 12) {
                 phone = rawPhone;
-            } else if (rawPhone.startsWith("0")) {
+            } else if (
+                    (rawPhone.startsWith("07") || rawPhone.startsWith("01")) &&
+                            rawPhone.length() == 10
+            ) {
                 phone = "254" + rawPhone.substring(1);
-            } else if (rawPhone.length() == 9) {
+            } else if (
+                    (rawPhone.startsWith("7") || rawPhone.startsWith("1")) &&
+                            rawPhone.length() == 9
+            ) {
                 phone = "254" + rawPhone;
             } else {
                 return ResponseEntity.badRequest().body(Map.of(
@@ -89,13 +100,15 @@ public class FulizaBoostController {
                 ));
             }
 
-            // Validate phone format
-            if (!phone.matches("^254\\d{9}$")) {
+// Final Safaricom validation
+            if (!phone.matches("^254(7|1)\\d{8}$")) {
                 return ResponseEntity.badRequest().body(Map.of(
                         "success", false,
-                        "error", "Invalid phone number format. Must be 254XXXXXXXXX"
+                        "error", "Invalid Safaricom number"
                 ));
             }
+
+
 
             Double amount = ((Number) payload.get("fee")).doubleValue();
             String customerName = (String) payload.getOrDefault("customer_name", "Customer");
